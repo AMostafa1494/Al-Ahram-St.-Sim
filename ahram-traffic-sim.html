@@ -1,0 +1,800 @@
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>سيميوليشن حركة المرور — شارع الأهرام، مصر الجديدة</title>
+<style>
+  :root {
+    /* palette — Heliopolis night ground + traffic semantics */
+    --bg: #0E1520;
+    --bg-2: #131C2A;
+    --panel: #16202F;
+    --panel-2: #1B2838;
+    --stroke: #26364B;
+    --stroke-soft: #1F2E42;
+    --ink: #EAF1FA;
+    --ink-2: #A9BAD0;
+    --ink-3: #6E819B;
+    --accent: #F2A93B;      /* Heliopolis warm stone / signal amber */
+    --accent-deep: #C9852A;
+    --go: #3FB27F;
+    --stop: #E5533D;
+    --amber: #F2C14E;
+    --median: #3F5E4A;
+    --asphalt: #262C37;
+    --shadow: 0 18px 40px -18px rgba(0,0,0,.7);
+    --radius: 14px;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --ar: "SF Arabic", system-ui, -apple-system, "Segoe UI", Tahoma, "Noto Sans Arabic", sans-serif;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #ECEBE4; --bg-2: #F4F3EE; --panel: #FBFAF6; --panel-2: #F1EFE7;
+      --stroke: #DAD6C8; --stroke-soft: #E6E2D6;
+      --ink: #1C2430; --ink-2: #4A5568; --ink-3: #8A93A3;
+      --accent: #C9852A; --accent-deep: #A66A1C;
+      --go: #2E9469; --stop: #C8412C; --amber: #D89A1E;
+      --median: #6E8C63; --asphalt: #3A414D;
+      --shadow: 0 18px 40px -22px rgba(60,50,20,.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0E1520; --bg-2: #131C2A; --panel: #16202F; --panel-2: #1B2838;
+    --stroke: #26364B; --stroke-soft: #1F2E42; --ink: #EAF1FA; --ink-2: #A9BAD0; --ink-3: #6E819B;
+    --accent: #F2A93B; --accent-deep: #C9852A; --go: #3FB27F; --stop: #E5533D; --amber: #F2C14E;
+    --median: #3F5E4A; --asphalt: #262C37; --shadow: 0 18px 40px -18px rgba(0,0,0,.7);
+  }
+  :root[data-theme="light"] {
+    --bg: #ECEBE4; --bg-2: #F4F3EE; --panel: #FBFAF6; --panel-2: #F1EFE7;
+    --stroke: #DAD6C8; --stroke-soft: #E6E2D6; --ink: #1C2430; --ink-2: #4A5568; --ink-3: #8A93A3;
+    --accent: #C9852A; --accent-deep: #A66A1C; --go: #2E9469; --stop: #C8412C; --amber: #D89A1E;
+    --median: #6E8C63; --asphalt: #3A414D; --shadow: 0 18px 40px -22px rgba(60,50,20,.35);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    direction: rtl;
+    font-family: var(--ar);
+    background:
+      radial-gradient(1200px 600px at 80% -10%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 60%),
+      var(--bg);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: clamp(16px, 3vw, 34px); }
+
+  /* header */
+  header.top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 18px; margin-bottom: 20px; }
+  .brand { display: flex; flex-direction: column; gap: 6px; }
+  .eyebrow {
+    font-size: 12px; letter-spacing: .22em; text-transform: uppercase;
+    color: var(--accent); font-weight: 700; display: flex; align-items: center; gap: 9px;
+  }
+  .eyebrow::before { content: ""; width: 26px; height: 2px; background: var(--accent); display: inline-block; border-radius: 2px; }
+  h1 { font-size: clamp(22px, 3.4vw, 34px); margin: 0; font-weight: 800; letter-spacing: -.01em; text-wrap: balance; }
+  .sub { color: var(--ink-2); font-size: 15px; max-width: 60ch; }
+
+  .theme-btn {
+    background: var(--panel); border: 1px solid var(--stroke); color: var(--ink-2);
+    border-radius: 10px; padding: 9px 12px; cursor: pointer; font-family: var(--ar); font-size: 13px;
+    display: inline-flex; align-items: center; gap: 7px;
+  }
+  .theme-btn:hover { border-color: var(--accent); color: var(--ink); }
+
+  /* scenario toggle */
+  .scenario { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 18px; }
+  .seg {
+    display: inline-flex; background: var(--panel); border: 1px solid var(--stroke);
+    border-radius: 12px; padding: 4px; gap: 4px;
+  }
+  .seg button {
+    font-family: var(--ar); font-size: 15px; font-weight: 700; cursor: pointer;
+    border: 0; background: transparent; color: var(--ink-2); padding: 9px 22px; border-radius: 9px;
+    transition: background .18s, color .18s; letter-spacing: .01em;
+  }
+  .seg button[aria-pressed="true"] { background: var(--accent); color: #16130B; box-shadow: 0 4px 14px -6px color-mix(in srgb, var(--accent) 70%, transparent); }
+  .scenario .desc { color: var(--ink-3); font-size: 13.5px; }
+  .scenario .desc b { color: var(--ink-2); font-weight: 700; }
+
+  /* main grid */
+  .grid { display: grid; grid-template-columns: 1fr 320px; gap: 18px; align-items: start; }
+  @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+
+  .stage {
+    background: linear-gradient(180deg, var(--panel), var(--panel-2));
+    border: 1px solid var(--stroke); border-radius: var(--radius); padding: 12px;
+    box-shadow: var(--shadow); position: relative; overflow: hidden;
+  }
+  canvas { width: 100%; display: block; border-radius: 8px; }
+
+  .stage-tag {
+    position: absolute; top: 20px; inset-inline-start: 22px; z-index: 3;
+    font-size: 12px; letter-spacing: .12em; text-transform: uppercase; font-weight: 800;
+    padding: 5px 11px; border-radius: 999px; backdrop-filter: blur(4px);
+    background: color-mix(in srgb, var(--bg) 55%, transparent); border: 1px solid var(--stroke);
+    color: var(--ink-2);
+  }
+  .stage-tag .dot { display:inline-block; width:8px; height:8px; border-radius:50%; margin-inline-end:6px; vertical-align: middle; }
+
+  .rail { display: flex; flex-direction: column; gap: 14px; }
+  .card { background: var(--panel); border: 1px solid var(--stroke); border-radius: var(--radius); padding: 15px 16px; }
+  .card h3 { margin: 0 0 12px; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); font-weight: 800; }
+
+  /* controls */
+  .row { display: flex; align-items: center; gap: 10px; }
+  .btns { display: flex; gap: 8px; }
+  .btn {
+    flex: 1; font-family: var(--ar); font-weight: 700; font-size: 14px; cursor: pointer;
+    border: 1px solid var(--stroke); background: var(--panel-2); color: var(--ink);
+    border-radius: 10px; padding: 10px 12px; transition: border-color .15s, background .15s;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .btn:hover { border-color: var(--accent); }
+  .btn.primary { background: var(--accent); color: #16130B; border-color: transparent; }
+  .btn.primary:hover { background: var(--accent-deep); }
+
+  .slider-label { display: flex; justify-content: space-between; font-size: 13px; color: var(--ink-2); margin-bottom: 8px; }
+  .slider-label b { color: var(--ink); font-variant-numeric: tabular-nums; }
+  input[type="range"] { width: 100%; accent-color: var(--accent); }
+
+  /* KPI list */
+  .kpi { display: flex; flex-direction: column; gap: 10px; }
+  .kpi-row {
+    display: grid; grid-template-columns: 1fr auto auto; align-items: baseline; gap: 10px;
+    padding: 10px 0; border-bottom: 1px solid var(--stroke-soft);
+  }
+  .kpi-row:last-child { border-bottom: 0; padding-bottom: 0; }
+  .kpi-name { font-size: 13.5px; color: var(--ink-2); }
+  .kpi-name small { display:block; color: var(--ink-3); font-size: 11px; }
+  .kpi-val { font-family: var(--mono); font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .kpi-unit { font-size: 11px; color: var(--ink-3); font-family: var(--ar); font-weight: 400; margin-inline-start: 3px; }
+  .kpi-delta { font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; text-align: start; min-width: 58px; }
+  .kpi-delta.good { color: var(--go); }
+  .kpi-delta.bad { color: var(--stop); }
+  .kpi-delta.flat { color: var(--ink-3); }
+
+  /* comparison */
+  .cmp-item { margin-bottom: 14px; }
+  .cmp-item:last-child { margin-bottom: 0; }
+  .cmp-head { display: flex; justify-content: space-between; font-size: 12.5px; color: var(--ink-2); margin-bottom: 6px; }
+  .cmp-head b { color: var(--ink); font-variant-numeric: tabular-nums; font-family: var(--mono); }
+  .bar { height: 8px; background: var(--panel-2); border-radius: 6px; overflow: hidden; display: flex; }
+  .bar > span { display: block; height: 100%; border-radius: 6px; transition: width .5s ease; }
+  .bar .b-before { background: color-mix(in srgb, var(--stop) 70%, var(--ink-3)); }
+  .bar-legend { display: flex; gap: 16px; font-size: 11.5px; color: var(--ink-3); margin-top: 4px; }
+  .bar-legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .sw { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+
+  .legend { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 14px; font-size: 12.5px; color: var(--ink-2); }
+  .legend span { display: inline-flex; align-items: center; gap: 7px; }
+  .legend i { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
+
+  footer { margin-top: 22px; color: var(--ink-3); font-size: 12px; line-height: 1.7; border-top: 1px solid var(--stroke-soft); padding-top: 14px; }
+  footer b { color: var(--ink-2); }
+  .verdict {
+    margin-top: 14px; padding: 12px 14px; border-radius: 12px; font-size: 14px;
+    background: color-mix(in srgb, var(--go) 12%, transparent); border: 1px solid color-mix(in srgb, var(--go) 35%, transparent);
+    color: var(--ink); display: none;
+  }
+  .verdict b { color: var(--go); }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <div class="eyebrow">CUBE Consultants · دراسة حركة مرور</div>
+      <h1>سيميوليشن حركة السيارات — شارع الأهرام، مصر الجديدة</h1>
+      <div class="sub">نموذج تفاعلي top-view يقارن الوضع الحالي بالتصميم المقترح، مع قياس مباشر لمتوسط السرعة والزحمة وزمن الانتظار والسعة المرورية.</div>
+    </div>
+    <button class="theme-btn" id="themeBtn" type="button">◐ تبديل الإضاءة</button>
+  </header>
+
+  <div class="scenario">
+    <div class="seg" role="group" aria-label="اختيار السيناريو">
+      <button id="btnBefore" aria-pressed="true" type="button">قبل — الوضع الحالي</button>
+      <button id="btnAfter" aria-pressed="false" type="button">بعد — المقترح</button>
+    </div>
+    <div class="desc" id="scenarioDesc"></div>
+  </div>
+
+  <div class="grid">
+    <div class="stage">
+      <div class="stage-tag" id="stageTag"><span class="dot"></span><span id="stageTagText"></span></div>
+      <canvas id="road"></canvas>
+    </div>
+
+    <div class="rail">
+      <div class="card">
+        <h3>التحكم</h3>
+        <div class="btns" style="margin-bottom:14px;">
+          <button class="btn primary" id="playBtn" type="button">⏸ إيقاف مؤقت</button>
+          <button class="btn" id="resetBtn" type="button">↻ إعادة</button>
+        </div>
+        <div class="slider-label"><span>كثافة المرور</span><b><span id="densVal">140</span> مركبة</b></div>
+        <input type="range" id="density" min="30" max="260" value="140" step="5" />
+        <div class="slider-label" style="margin-top:14px;"><span>سرعة المحاكاة</span><b><span id="speedVal">1.0</span>×</b></div>
+        <input type="range" id="simspeed" min="0.5" max="3" value="1.5" step="0.5" />
+      </div>
+
+      <div class="card">
+        <h3>القياسات الحية</h3>
+        <div class="kpi" id="kpi"></div>
+      </div>
+
+      <div class="card">
+        <h3>مقارنة قبل / بعد</h3>
+        <div id="cmp"></div>
+        <div class="bar-legend" style="margin-top:10px;">
+          <span><i class="sw" style="background:color-mix(in srgb, var(--stop) 70%, var(--ink-3));"></i> قبل</span>
+          <span><i class="sw" style="background:var(--go);"></i> بعد</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>الدليل</h3>
+        <div class="legend">
+          <span><i style="background:var(--go)"></i> مركبة سريعة</span>
+          <span><i style="background:var(--amber)"></i> مركبة بطيئة</span>
+          <span><i style="background:var(--stop)"></i> متوقفة/زحمة</span>
+          <span><i style="background:var(--median)"></i> الجزيرة الوسطى</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="verdict" id="verdict"></div>
+
+  <footer>
+    <b>ملاحظة منهجية:</b> النموذج يستخدم معادلة تتبّع السيارة (Intelligent Driver Model) — كل مركبة تحسب تسارعها من المسافة للمركبة الأمامية وحالة الإشارة الأقرب. الفرق بين «قبل» و«بعد» = عدد الحارات + تزامن الإشارات (موجة خضراء) + نسبة التوقيت الأخضر. الأرقام نسبية لأغراض العرض والدراسة، مش قياس ميداني.
+  </footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---------- config ----------
+  var WORLD_LEN = 900;          // meters
+  var CAR_LEN = 4.6, CAR_W = 2.0;
+  var V0 = 16.7;                // free-flow speed m/s (~60 km/h)
+  var A_MAX = 1.6, B_COMF = 2.4, S0 = 2.2, T_HEAD = 1.35;
+  var SQRT_AB = Math.sqrt(A_MAX * B_COMF);
+
+  var INTERSECTIONS_X = [0.30, 0.55, 0.80].map(function (f) { return f * WORLD_LEN; });
+
+  var SCEN = {
+    before: {
+      lanes: 2, cycle: 60, green: 20, amber: 3,
+      offsets: [0, 31, 13],           // uncoordinated (seconds)
+      desc: "<b>حارتان لكل اتجاه</b> · إشارات غير متزامنة · توقيت أخضر قصير · ركن جانبي يضيّق الحارة",
+      label: "الوضع الحالي", color: "var(--stop)"
+    },
+    after: {
+      lanes: 3, cycle: 60, green: 36, amber: 3,
+      offsets: null,                  // computed as green wave
+      desc: "<b>٣ حارات منظمة</b> · موجة خضراء متزامنة · توقيت أخضر أطول · حارات انعطاف مخصصة",
+      label: "التصميم المقترح", color: "var(--go)"
+    }
+  };
+  // green-wave offsets for "after": offset each light by -(travel time) so a car
+  // cruising at V0 meets a fresh green at every intersection (progression band).
+  SCEN.after.offsets = INTERSECTIONS_X.map(function (x) {
+    var C = SCEN.after.cycle;
+    return ((C - (x / V0) % C) % C);
+  });
+
+  // ---------- state ----------
+  var canvas = document.getElementById("road");
+  var ctx = canvas.getContext("2d");
+  var current = "before";
+  var running = true;
+  var simSpeed = 1.5;
+  var targetCount = 140;
+
+  var cars = [];
+  var t = 0;              // sim time seconds
+  var carSeed = 1;
+
+  // metrics (EMA) and stored per-scenario snapshots
+  var live = { speed: 0, throughput: 0, delay: 0, congestion: 0 };
+  var exitRateEMA = 0, lastExitTimes = [];
+  var delayEMA = 0;
+  var store = { before: null, after: null };
+  var warmup = 0;
+
+  // ---------- helpers ----------
+  function cfg() { return SCEN[current]; }
+
+  function signalState(ix, time) {
+    var c = cfg();
+    var off = c.offsets[ix];
+    var phase = ((time + off) % c.cycle + c.cycle) % c.cycle;
+    if (phase < c.green) return 0;            // GREEN
+    if (phase < c.green + c.amber) return 1;  // AMBER
+    return 2;                                 // RED
+  }
+
+  function travelPos(car) { return car.dir > 0 ? car.x : (WORLD_LEN - car.x); }
+
+  function seededRand() {
+    carSeed = (carSeed * 1103515245 + 12345) & 0x7fffffff;
+    return carSeed / 0x7fffffff;
+  }
+
+  function makeCar(dir, lane, x) {
+    return { dir: dir, lane: lane, x: x, v: V0 * 0.6, stopped: 0, t0: t, id: seededRand() };
+  }
+
+  // spawn / maintain population
+  function manage() {
+    // remove exited, count throughput
+    var kept = [];
+    for (var i = 0; i < cars.length; i++) {
+      var car = cars[i];
+      var out = car.dir > 0 ? car.x > WORLD_LEN : car.x < 0;
+      if (out) {
+        // record delay = actual travel time - free-flow time
+        var ideal = WORLD_LEN / V0;
+        var actual = t - car.t0;
+        var d = Math.max(0, actual - ideal);
+        delayEMA = delayEMA === 0 ? d : delayEMA * 0.96 + d * 0.04;
+        lastExitTimes.push(t);
+      } else {
+        kept.push(car);
+      }
+    }
+    cars = kept;
+
+    // trim exit history to last 30s for throughput
+    while (lastExitTimes.length && lastExitTimes[0] < t - 30) lastExitTimes.shift();
+
+    // spawn to reach target, respecting inflow spacing
+    var lanes = cfg().lanes;
+    var tries = 0;
+    while (cars.length < targetCount && tries < 8) {
+      tries++;
+      var dir = seededRand() < 0.5 ? 1 : -1;
+      var lane = Math.floor(seededRand() * lanes);
+      var entryX = dir > 0 ? 0 : WORLD_LEN;
+      // find nearest car just ahead of entry in this lane/dir
+      var minGap = Infinity;
+      for (var j = 0; j < cars.length; j++) {
+        var c2 = cars[j];
+        if (c2.dir !== dir || c2.lane !== lane) continue;
+        var tp = travelPos(c2); // entry travelPos = 0
+        if (tp < minGap) minGap = tp;
+      }
+      if (minGap > CAR_LEN + S0 + 6) {
+        cars.push(makeCar(dir, lane, entryX));
+      }
+    }
+  }
+
+  function idmAccel(v, gap, leaderV) {
+    if (gap <= 0.05) gap = 0.05;
+    var dv = v - leaderV;
+    var sStar = S0 + Math.max(0, v * T_HEAD + (v * dv) / (2 * SQRT_AB));
+    return A_MAX * (1 - Math.pow(v / V0, 4) - Math.pow(sStar / gap, 2));
+  }
+
+  function step(dt) {
+    t += dt;
+
+    // group by dir+lane
+    var groups = {};
+    for (var i = 0; i < cars.length; i++) {
+      var car = cars[i];
+      var key = car.dir + ":" + car.lane;
+      (groups[key] || (groups[key] = [])).push(car);
+    }
+
+    for (var k in groups) {
+      var g = groups[k];
+      g.sort(function (a, b) { return travelPos(a) - travelPos(b); });
+      for (var m = 0; m < g.length; m++) {
+        var c = g[m];
+        var tp = travelPos(c);
+
+        // vehicle leader
+        var accel;
+        if (m + 1 < g.length) {
+          var lead = g[m + 1];
+          var gap = travelPos(lead) - tp - CAR_LEN;
+          accel = idmAccel(c.v, gap, lead.v);
+        } else {
+          accel = A_MAX * (1 - Math.pow(c.v / V0, 4));
+        }
+
+        // nearest red/amber signal ahead -> virtual stopped leader
+        for (var s = 0; s < INTERSECTIONS_X.length; s++) {
+          var st = signalState(s, t);
+          if (st === 0) continue; // green, ignore
+          var stopX = INTERSECTIONS_X[s] - c.dir * 7; // stop line before intersection
+          var stopTp = c.dir > 0 ? stopX : (WORLD_LEN - stopX);
+          var sgap = stopTp - tp - 0.5;
+          if (sgap > 0 && sgap < 140) {
+            var aSig = idmAccel(c.v, sgap, 0);
+            if (aSig < accel) accel = aSig;
+          }
+        }
+
+        if (accel < -8) accel = -8;
+        c.v += accel * dt;
+        if (c.v < 0) c.v = 0;
+        c.x += c.dir * c.v * dt;
+        if (c.v < 1.5) c.stopped += dt;
+      }
+    }
+
+    manage();
+    updateMetrics(dt);
+  }
+
+  function updateMetrics(dt) {
+    var n = cars.length, sumV = 0, stoppedN = 0;
+    for (var i = 0; i < cars.length; i++) {
+      sumV += cars[i].v;
+      if (cars[i].v < 2) stoppedN++;
+    }
+    var avgV = n ? (sumV / n) : V0;              // m/s
+    var cong = n ? (stoppedN / n) : 0;
+    // fundamental relation: flow (veh/min across a screenline) = density * speed
+    var flow = (n * avgV / WORLD_LEN) * 60;
+    // extra time to traverse the 900 m corridor vs free-flow
+    var extra = Math.max(0, WORLD_LEN / Math.max(avgV, 0.5) - WORLD_LEN / V0);
+
+    live.speed = live.speed * 0.94 + (avgV * 3.6) * 0.06;
+    live.congestion = live.congestion * 0.94 + (cong * 100) * 0.06;
+    live.throughput = live.throughput * 0.92 + flow * 0.08;
+    live.delay = live.delay * 0.94 + extra * 0.06;
+
+    warmup += dt;
+    if (warmup > 8) {
+      store[current] = { speed: live.speed, throughput: live.throughput, delay: live.delay, congestion: live.congestion };
+    }
+  }
+
+  // ---------- rendering ----------
+  var dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+  var CW = 900, CH = 460;
+
+  function resize() {
+    var rect = canvas.getBoundingClientRect();
+    CW = rect.width;
+    CH = Math.max(360, Math.min(520, rect.width * 0.5));
+    canvas.width = CW * dpr;
+    canvas.height = CH * dpr;
+    canvas.style.height = CH + "px";
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  function css(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+
+  function xToPx(x, marginX, drawW) { return marginX + (x / WORLD_LEN) * drawW; }
+
+  function speedColor(v) {
+    var f = Math.max(0, Math.min(1, v / V0));
+    // red -> amber -> green
+    var stop = css("--stop"), amber = css("--amber"), go = css("--go");
+    if (f < 0.5) return mix(stop, amber, f / 0.5);
+    return mix(amber, go, (f - 0.5) / 0.5);
+  }
+  function hex(c) {
+    c = c.trim();
+    if (c[0] === "#") {
+      if (c.length === 4) return [parseInt(c[1]+c[1],16),parseInt(c[2]+c[2],16),parseInt(c[3]+c[3],16)];
+      return [parseInt(c.slice(1,3),16),parseInt(c.slice(3,5),16),parseInt(c.slice(5,7),16)];
+    }
+    return [128,128,128];
+  }
+  function mix(a, b, f) {
+    var A = hex(a), B = hex(b);
+    return "rgb(" + Math.round(A[0]+(B[0]-A[0])*f) + "," + Math.round(A[1]+(B[1]-A[1])*f) + "," + Math.round(A[2]+(B[2]-A[2])*f) + ")";
+  }
+
+  function draw() {
+    var lanes = cfg().lanes;
+    var marginX = 26;
+    var drawW = CW - marginX * 2;
+    var laneH = 14;
+    var medianH = 22;
+    var roadH = lanes * 2 * laneH + medianH;
+    var top = (CH - roadH) / 2;
+
+    ctx.clearRect(0, 0, CW, CH);
+
+    // ground / sidewalks
+    ctx.fillStyle = css("--bg-2");
+    ctx.fillRect(0, 0, CW, CH);
+
+    // building blocks (stylized Heliopolis arcades) top & bottom
+    drawBuildings(marginX, drawW, top, roadH);
+
+    var topRoadY = top;
+    var botRoadY = top + lanes * laneH + medianH;
+
+    // asphalt
+    ctx.fillStyle = css("--asphalt");
+    ctx.fillRect(marginX, topRoadY, drawW, lanes * laneH);
+    ctx.fillRect(marginX, botRoadY, drawW, lanes * laneH);
+
+    // median (green)
+    var medY = top + lanes * laneH;
+    var grad = ctx.createLinearGradient(0, medY, 0, medY + medianH);
+    grad.addColorStop(0, css("--median"));
+    grad.addColorStop(1, mix(css("--median"), "#000000", 0.25));
+    ctx.fillStyle = grad;
+    ctx.fillRect(marginX, medY, drawW, medianH);
+    // trees on median
+    ctx.fillStyle = mix(css("--median"), "#ffffff", 0.18);
+    for (var tx = marginX + 18; tx < marginX + drawW - 8; tx += 34) {
+      ctx.beginPath();
+      ctx.arc(tx, medY + medianH / 2, 4.2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // lane dashes
+    ctx.strokeStyle = mix(css("--asphalt"), "#ffffff", 0.4);
+    ctx.lineWidth = 1;
+    ctx.setLineDash([10, 12]);
+    for (var l = 1; l < lanes; l++) {
+      var y1 = topRoadY + l * laneH;
+      line(marginX, y1, marginX + drawW, y1);
+      var y2 = botRoadY + l * laneH;
+      line(marginX, y2, marginX + drawW, y2);
+    }
+    ctx.setLineDash([]);
+
+    // road edges
+    ctx.strokeStyle = mix(css("--asphalt"), "#ffffff", 0.55);
+    ctx.lineWidth = 1.5;
+    line(marginX, topRoadY, marginX + drawW, topRoadY);
+    line(marginX, botRoadY + lanes * laneH, marginX + drawW, botRoadY + lanes * laneH);
+
+    // intersections (cross streets) + signals
+    for (var s = 0; s < INTERSECTIONS_X.length; s++) {
+      var px = xToPx(INTERSECTIONS_X[s], marginX, drawW);
+      ctx.fillStyle = css("--bg-2");
+      ctx.fillRect(px - 16, top - 26, 32, roadH + 52);
+      ctx.fillStyle = css("--asphalt");
+      ctx.fillRect(px - 15, top, 30, roadH);
+      // crosswalk stripes
+      ctx.fillStyle = mix(css("--asphalt"), "#ffffff", 0.5);
+      var st = signalState(s, t);
+      var sc = st === 0 ? css("--go") : (st === 1 ? css("--amber") : css("--stop"));
+      // signal heads (both approaches)
+      signalHead(px - 22, topRoadY - 8, sc);
+      signalHead(px + 22, botRoadY + lanes * laneH + 8, sc);
+      // stop line glow when red
+      if (st !== 0) {
+        ctx.fillStyle = mix(sc, css("--asphalt"), 0.55);
+        ctx.fillRect(px - 15 - c_dir_pad(), top, 3, roadH);
+      }
+    }
+
+    // cars
+    for (var i = 0; i < cars.length; i++) {
+      var car = cars[i];
+      var cx = xToPx(car.x, marginX, drawW);
+      var laneY;
+      if (car.dir > 0) laneY = topRoadY + car.lane * laneH + laneH / 2;
+      else laneY = botRoadY + car.lane * laneH + laneH / 2;
+      var w = Math.max(7, (CAR_LEN / WORLD_LEN) * drawW);
+      var h = laneH - 4;
+      ctx.fillStyle = speedColor(car.v);
+      roundRect(cx - w / 2, laneY - h / 2, w, h, 2.5);
+      ctx.fill();
+    }
+  }
+  function c_dir_pad() { return 0; }
+
+  function drawBuildings(marginX, drawW, top, roadH) {
+    var bh = 22;
+    ctx.save();
+    var seedB = 7;
+    function rnd() { seedB = (seedB * 48271) % 2147483647; return seedB / 2147483647; }
+    var x = marginX;
+    while (x < marginX + drawW) {
+      var w = 20 + rnd() * 26;
+      var shade = 0.10 + rnd() * 0.16;
+      ctx.fillStyle = mix(css("--panel-2"), "#ffffff", shade);
+      ctx.fillRect(x, top - bh - 6, w - 3, bh);
+      ctx.fillRect(x, top + roadH + 6, w - 3, bh);
+      x += w;
+    }
+    ctx.restore();
+  }
+
+  function signalHead(x, y, color) {
+    ctx.save();
+    ctx.fillStyle = css("--bg");
+    roundRect(x - 4, y - 4, 8, 8, 2); ctx.fill();
+    ctx.fillStyle = color;
+    ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI * 2); ctx.fill();
+    ctx.shadowColor = color; ctx.shadowBlur = 8;
+    ctx.beginPath(); ctx.arc(x, y, 2.4, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  }
+
+  function line(x1, y1, x2, y2) { ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); }
+  function roundRect(x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  // ---------- UI ----------
+  var KPIS = [
+    { key: "speed", name: "متوسط السرعة", sub: "كل المركبات", unit: "كم/س", better: "up", dp: 0 },
+    { key: "throughput", name: "السعة المرورية", sub: "تدفق/دقيقة", unit: "مركبة", better: "up", dp: 0 },
+    { key: "delay", name: "زمن العبور الإضافي", sub: "مقابل الانسياب الحر", unit: "ث", better: "down", dp: 0 },
+    { key: "congestion", name: "مؤشر الزحمة", sub: "نسبة المتوقفة", unit: "%", better: "down", dp: 0 }
+  ];
+
+  function renderKPIs() {
+    var host = document.getElementById("kpi");
+    var other = current === "before" ? "after" : "before";
+    var html = "";
+    KPIS.forEach(function (m) {
+      var v = live[m.key];
+      var os = store[other];
+      var deltaHtml = '<span class="kpi-delta flat">—</span>';
+      if (os) {
+        var ov = os[m.key];
+        var diff = v - ov;
+        var pct = ov !== 0 ? (diff / ov * 100) : 0;
+        var improved = m.better === "up" ? diff > 0 : diff < 0;
+        var cls = Math.abs(pct) < 1.5 ? "flat" : (improved ? "good" : "bad");
+        var arrow = diff === 0 ? "" : (diff > 0 ? "▲" : "▼");
+        var lbl = current === "before" ? "مقابل بعد" : "مقابل قبل";
+        deltaHtml = '<span class="kpi-delta ' + cls + '" title="' + lbl + '">' + arrow + " " + Math.abs(pct).toFixed(0) + "%</span>";
+      }
+      html +=
+        '<div class="kpi-row">' +
+          '<div class="kpi-name">' + m.name + '<small>' + m.sub + '</small></div>' +
+          '<div class="kpi-val">' + v.toFixed(m.dp) + '<span class="kpi-unit">' + m.unit + '</span></div>' +
+          deltaHtml +
+        '</div>';
+    });
+    host.innerHTML = html;
+  }
+
+  function renderCmp() {
+    var host = document.getElementById("cmp");
+    var b = store.before, a = store.after;
+    var html = "";
+    KPIS.forEach(function (m) {
+      var bv = b ? b[m.key] : null, av = a ? a[m.key] : null;
+      var maxv = Math.max(bv || 0, av || 0) || 1;
+      var bw = bv != null ? (bv / maxv * 100) : 0;
+      var aw = av != null ? (av / maxv * 100) : 0;
+      html +=
+        '<div class="cmp-item">' +
+          '<div class="cmp-head"><span>' + m.name + '</span><span><b>' +
+            (bv != null ? bv.toFixed(m.dp) : "—") + '</b> ← <b>' + (av != null ? av.toFixed(m.dp) : "—") + '</b> ' + m.unit +
+          '</span></div>' +
+          '<div class="bar"><span class="b-before" style="width:' + bw + '%"></span></div>' +
+          '<div class="bar" style="margin-top:4px;"><span style="background:var(--go);width:' + aw + '%"></span></div>' +
+        '</div>';
+    });
+    host.innerHTML = html;
+
+    // verdict
+    var vEl = document.getElementById("verdict");
+    if (b && a) {
+      var spd = ((a.speed - b.speed) / b.speed * 100);
+      var dly = ((b.delay - a.delay) / (b.delay || 1) * 100);
+      var thr = ((a.throughput - b.throughput) / (b.throughput || 1) * 100);
+      vEl.style.display = "block";
+      vEl.innerHTML = "<b>خلاصة الدراسة:</b> التصميم المقترح يرفع متوسط السرعة بنحو <b>" +
+        Math.max(0, spd).toFixed(0) + "%</b>، ويزيد السعة المرورية بـ <b>" + Math.max(0, thr).toFixed(0) +
+        "%</b>، ويقلّل زمن الانتظار بحوالي <b>" + Math.max(0, dly).toFixed(0) + "%</b> عند نفس كثافة المرور.";
+    }
+  }
+
+  function setScenario(name) {
+    current = name;
+    document.getElementById("btnBefore").setAttribute("aria-pressed", name === "before");
+    document.getElementById("btnAfter").setAttribute("aria-pressed", name === "after");
+    document.getElementById("scenarioDesc").innerHTML = cfg().desc;
+    var tag = document.getElementById("stageTag");
+    document.getElementById("stageTagText").textContent = cfg().label;
+    tag.querySelector(".dot").style.background = cfg().color;
+    // soft reset of dynamic metrics, keep cars for continuity but re-warm
+    warmup = 0;
+    delayEMA = 0;
+    live.speed = store[name] ? store[name].speed : 30;
+    live.throughput = store[name] ? store[name].throughput : 10;
+    live.congestion = store[name] ? store[name].congestion : 20;
+    live.delay = store[name] ? store[name].delay : 0;
+    // rebuild cars to fit new lane count
+    resetCars();
+  }
+
+  function resetCars() {
+    cars = [];
+    lastExitTimes = [];
+    var lanes = cfg().lanes;
+    var per = Math.floor(targetCount / (lanes * 2));
+    for (var dir = -1; dir <= 1; dir += 2) {
+      for (var lane = 0; lane < lanes; lane++) {
+        for (var i = 0; i < per; i++) {
+          var x = (i / per) * WORLD_LEN * 0.95 + (dir > 0 ? 0 : WORLD_LEN * 0.05);
+          cars.push(makeCar(dir, lane, x));
+        }
+      }
+    }
+  }
+
+  // ---------- loop ----------
+  var lastTs = 0;
+  function frame(ts) {
+    if (!lastTs) lastTs = ts;
+    var realDt = Math.min(0.05, (ts - lastTs) / 1000);
+    lastTs = ts;
+    if (running) {
+      var simDt = realDt * simSpeed;
+      var sub = Math.ceil(simDt / 0.05);
+      var h = simDt / sub;
+      for (var i = 0; i < sub; i++) step(h);
+    }
+    draw();
+    renderKPIs();
+    frameCount++;
+    if (frameCount % 12 === 0) renderCmp();
+    requestAnimationFrame(frame);
+  }
+  var frameCount = 0;
+
+  // ---------- events ----------
+  document.getElementById("btnBefore").addEventListener("click", function () { setScenario("before"); });
+  document.getElementById("btnAfter").addEventListener("click", function () { setScenario("after"); });
+
+  document.getElementById("playBtn").addEventListener("click", function () {
+    running = !running;
+    this.textContent = running ? "⏸ إيقاف مؤقت" : "▶ تشغيل";
+  });
+  document.getElementById("resetBtn").addEventListener("click", function () {
+    t = 0; store = { before: null, after: null }; delayEMA = 0; warmup = 0;
+    document.getElementById("verdict").style.display = "none";
+    resetCars();
+  });
+  document.getElementById("density").addEventListener("input", function () {
+    targetCount = +this.value;
+    document.getElementById("densVal").textContent = this.value;
+  });
+  document.getElementById("simspeed").addEventListener("input", function () {
+    simSpeed = +this.value;
+    document.getElementById("speedVal").textContent = (+this.value).toFixed(1);
+  });
+
+  var themeBtn = document.getElementById("themeBtn");
+  themeBtn.addEventListener("click", function () {
+    var cur = document.documentElement.getAttribute("data-theme");
+    var next = cur === "dark" ? "light" : (cur === "light" ? "dark" : "light");
+    document.documentElement.setAttribute("data-theme", next);
+  });
+
+  window.addEventListener("resize", resize);
+
+  // ---------- init ----------
+  // force deterministic control values (browsers restore range inputs on reload)
+  var densEl = document.getElementById("density");
+  var speedEl = document.getElementById("simspeed");
+  densEl.setAttribute("autocomplete", "off");
+  speedEl.setAttribute("autocomplete", "off");
+  densEl.value = targetCount;
+  speedEl.value = simSpeed;
+  document.getElementById("densVal").textContent = targetCount;
+  document.getElementById("speedVal").textContent = simSpeed.toFixed(1);
+  resize();
+  setScenario("before");
+  resetCars();
+  requestAnimationFrame(frame);
+})();
+</script>
