@@ -84,6 +84,13 @@
   .seg button{flex:1;font-family:var(--ar);font-size:13px;font-weight:700;cursor:pointer;border:0;background:transparent;color:var(--ink-2);padding:7px 4px;border-radius:8px;}
   .seg button[aria-pressed="true"]{background:var(--accent);color:#16130B;}
   .seg.closed button[data-v="closed"][aria-pressed="true"]{background:var(--stop);color:#fff;}
+  /* numeric stepper (lanes / width) */
+  .stepper{display:flex;align-items:center;gap:8px;background:var(--panel-2);border:1px solid var(--stroke);border-radius:10px;padding:4px;}
+  .stepper button{flex:none;width:36px;height:30px;border-radius:8px;border:1px solid var(--stroke);background:var(--panel);color:var(--ink);font-size:19px;font-weight:800;line-height:1;cursor:pointer;transition:.12s;}
+  .stepper button:hover:not(:disabled){border-color:var(--accent);color:var(--accent);}
+  .stepper button:disabled{opacity:.3;cursor:not-allowed;}
+  .stepper .val{flex:1;text-align:center;font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--ink);}
+  .stepper .val small{font-size:10.5px;color:var(--ink-3);font-weight:600;margin-inline-start:3px;}
 
   /* live street data sheet */
   .sheet{border:1px solid var(--stroke-soft);border-radius:10px;overflow:hidden;margin-bottom:12px;}
@@ -188,6 +195,19 @@
           <button data-v="1" type="button">اتجاه ➊</button>
           <button data-v="-1" type="button">اتجاه ➋</button>
         </div>
+        <div class="ctl-label">عدد الحارات (إجمالي الاتجاهين)</div>
+        <div class="stepper" id="stepLanes">
+          <button data-s="-1" type="button" aria-label="أنقص حارة">−</button>
+          <span class="val"><span id="lanesVal">—</span><small id="lanesPer"></small></span>
+          <button data-s="1" type="button" aria-label="زد حارة">+</button>
+        </div>
+        <div class="ctl-label">عرض الطريق (متر)</div>
+        <div class="stepper" id="stepWidth">
+          <button data-s="-1" type="button" aria-label="أنقص العرض">−</button>
+          <span class="val"><span id="widthVal">—</span><small>م</small></span>
+          <button data-s="1" type="button" aria-label="زد العرض">+</button>
+        </div>
+        <div style="font-size:10.5px;color:var(--ink-3);margin-top:7px;line-height:1.55;">عدد الحارات يغيّر <b style="color:var(--ink-2)">السعة الفعلية</b> في المحاكاة والعرض يتبعه تلقائياً (٣.٣م/حارة). العرض قابل للتعديل يدوياً (لإضافة رصيف/ركن) دون تغيير السعة.</div>
         <div class="ctl-label">امتداد عبر الأهرام</div>
         <button class="btn sm" id="extendBtn" type="button" style="width:100%;border-color:#2FB9C4;color:#2FB9C4;">➕ مدّ هذا الشارع ليقطع الأهرام للجهة المقابلة</button>
         <div id="extendMsg" style="font-size:11.5px;color:var(--ink-3);margin-top:7px;line-height:1.5;"></div>
@@ -1010,11 +1030,13 @@ const NET = {"center":[30.0923317,31.3229306],"nodes":[[-842.4,212.1],[-865.4,23
     var flow = dens*(L.avg*3.6);                              // q = k · v  (veh/h per lane)
     var lg = losOf(L.ratio);
     var dirTxt = w.dir===0 ? "اتجاهين" : (w.dir===1?"اتجاه واحد ➊":"اتجاه واحد ➋");
-    var src = w.fx ? '<span class="srcTag srcReal" style="background:color-mix(in srgb,#2FB9C4 22%,transparent);color:#2FB9C4">بعد التوسعة</span>'
+    var editTag='<span class="srcTag srcReal" style="background:color-mix(in srgb,var(--accent) 24%,transparent);color:var(--accent)">معدّل يدوياً</span>';
+    var src = w.userLanes ? editTag
+            : (w.fx ? '<span class="srcTag srcReal" style="background:color-mix(in srgb,#2FB9C4 22%,transparent);color:#2FB9C4">بعد التوسعة</span>'
             : (w.lt ? '<span class="srcTag srcReal">OSM</span>'
             : (w.lp ? '<span class="srcTag srcReal" style="opacity:.8">من نفس الشارع</span>'
-                    : '<span class="srcTag srcEst">مقدّر</span>'));
-    var wsrc = w.wt ? '<span class="srcTag srcReal">OSM</span>' : '<span class="srcTag srcEst">محسوب</span>';
+                    : '<span class="srcTag srcEst">مقدّر</span>')));
+    var wsrc = w.userW ? editTag : (w.userLanes ? '<span class="srcTag srcEst">من الحارات</span>' : (w.wt ? '<span class="srcTag srcReal">OSM</span>' : '<span class="srcTag srcEst">محسوب</span>'));
     function row(lbl,val){ return '<div class="sr"><span>'+lbl+'</span><b>'+val+'</b></div>'; }
     host.innerHTML=
       '<div class="sheet">'
@@ -1034,10 +1056,11 @@ const NET = {"center":[30.0923317,31.3229306],"nodes":[[-842.4,212.1],[-865.4,23
       + row("نسبة المتوقفة", Math.round(L.stopPct)+'<small> ٪</small>')
       + '</div>'
       + '<div style="font-size:10px;color:var(--ink-3);line-height:1.5;margin:-4px 0 10px;">'
-      + (w.fx ? 'محدّث بعد التوسعة: الشارع مزدوج وكان ترام مصر الجديدة يسير في الفراغ بين المسارين حتى رُفعت القضبان (أكتوبر ٢٠١٤) ووُسّع المساران للداخل. OSM لم يُحدَّث بعد.'
+      + (w.userLanes ? 'عدد الحارات والعرض معدّلان يدوياً من لوحة التحكم — السعة في المحاكاة تعكس القيمة الجديدة مباشرة.'
+         : (w.fx ? 'محدّث بعد التوسعة: الشارع مزدوج وكان ترام مصر الجديدة يسير في الفراغ بين المسارين حتى رُفعت القضبان (أكتوبر ٢٠١٤) ووُسّع المساران للداخل. OSM لم يُحدَّث بعد.'
          : (w.lt ? 'عدد الحارات مسجّل فعلياً في OpenStreetMap.'
          : (w.lp ? 'عدد الحارات مأخوذ من مقطع موثّق في نفس الشارع (OSM يوثّق جزءاً من الشارع فقط).'
-                 : 'عدد الحارات غير مسجّل في OSM لهذا الشارع — مُقدّر من تصنيفه.')))
+                 : 'عدد الحارات غير مسجّل في OSM لهذا الشارع — مُقدّر من تصنيفه.'))))
       + (w.up ? ' تصنيف هذا المقطع رُقّي ليطابق التصنيف الغالب على طول الشارع.' : '')
       + '</div>';
   }
@@ -1102,11 +1125,38 @@ const NET = {"center":[30.0923317,31.3229306],"nodes":[[-842.4,212.1],[-865.4,23
       tier("التصنيف (LOS)", L.g, L.c, "#fff", L.t,
            F.t+" · السرعة الحالية "+Math.round(r*100)+"٪ من الحرة"+idle, true);
   }
+  var LANES_MIN=1, LANES_MAX=8, WIDTH_MIN=3, WIDTH_MAX=40;
   function syncSegs(w){
     var segO=document.getElementById("segOpen");
     segO.classList.toggle("closed", !w.open);
     segO.querySelectorAll("button").forEach(function(b){ b.setAttribute("aria-pressed", (b.dataset.v==="open")===w.open); });
     document.getElementById("segDir").querySelectorAll("button").forEach(function(b){ b.setAttribute("aria-pressed", (+b.dataset.v)===w.dir); });
+    // steppers
+    var lpd=lanesFor(w);
+    document.getElementById("lanesVal").textContent=w.tot;
+    document.getElementById("lanesPer").textContent=" ("+lpd+"/اتجاه)";
+    document.getElementById("widthVal").textContent=Math.round(w.w);
+    var sl=document.getElementById("stepLanes").querySelectorAll("button");
+    sl[0].disabled = w.tot<=LANES_MIN; sl[1].disabled = w.tot>=LANES_MAX;
+    var sw=document.getElementById("stepWidth").querySelectorAll("button");
+    sw[0].disabled = w.w<=WIDTH_MIN; sw[1].disabled = w.w>=WIDTH_MAX;
+  }
+  // change total lane count for the whole street → real capacity change; width auto-follows
+  function setLanes(w, tot){
+    tot=Math.max(LANES_MIN, Math.min(LANES_MAX, tot));
+    groupWays(w).forEach(function(x){
+      x.tot=tot;
+      x.w=+(tot*3.3).toFixed(1);              // width follows lanes unless later overridden
+      x.userLanes=1; x.userW=0;               // mark manually edited (keeps the panel honest)
+    });
+    buildGraph(); classifyNodes(); markRerouteAll();
+    syncSegs(w); updateSelSheet(w); updateSelLOS(w);
+  }
+  // override drawn/reported width only (parking, shoulders) — does NOT change capacity
+  function setWidth(w, ww){
+    ww=Math.max(WIDTH_MIN, Math.min(WIDTH_MAX, Math.round(ww)));
+    groupWays(w).forEach(function(x){ x.w=ww; x.userW=1; });
+    syncSegs(w); updateSelSheet(w);
   }
 
   document.getElementById("segOpen").addEventListener("click",function(e){
@@ -1120,6 +1170,14 @@ const NET = {"center":[30.0923317,31.3229306],"nodes":[[-842.4,212.1],[-865.4,23
     var dv=+b.dataset.v;
     groupWays(w).forEach(function(x){ x.dir=dv; x.open=true; });
     buildGraph(); classifyNodes(); markRerouteAll(); syncSegs(w);
+  });
+  document.getElementById("stepLanes").addEventListener("click",function(e){
+    var b=e.target.closest("button"); if(!b||b.disabled)return; var w=wayById(selWay); if(!w)return;
+    setLanes(w, w.tot + (+b.dataset.s));
+  });
+  document.getElementById("stepWidth").addEventListener("click",function(e){
+    var b=e.target.closest("button"); if(!b||b.disabled)return; var w=wayById(selWay); if(!w)return;
+    setWidth(w, w.w + (+b.dataset.s));
   });
   document.getElementById("deselBtn").addEventListener("click",function(){ selWay=-1; selCard.classList.remove("on"); updateSelSheet(null); });
   document.getElementById("extendBtn").addEventListener("click",function(){
